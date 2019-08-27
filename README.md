@@ -1,6 +1,4 @@
-# Restaurant Menu App
-*Udacity Item Catalog*
-> This is an item catalog project by Abhinav.
+# WeDyne Backend
 
 ## Content Of Table
 * [Introduction](#introduction)
@@ -13,8 +11,7 @@ In this project, you will be developing a web application that provides a list o
 
 # Getting Started
 1. Install [Vagrant](https://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/wiki/Download_Old_Builds_5_1)
-2. Clone the [fullstack-nanodegree-vm](https://github.com/udacity/fullstack-nanodegree-vm) repository.
-3. clone the [Item Catalog Application](https://github.com/Amit2197/Item_Catalog_Application) repository from github
+3. clone the [WeDyne Basckend](https://github.com/we-dyne/WedyneBackend) repository from github
 4. type vagrant up and vagrant ssh in your terminal
     >`vagrant up`  
     `vagrant ssh`
