@@ -1,61 +1,60 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="utf-8">
-    <title></title>
-    <!--LOAD PRE-REQUISITES FOR GOOGLE SIGN IN -->
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
-    </script>
+{% extends "main.html" %}
+{% block content %}
+<div class="user_page">
+    <div class="tab">
+        <button class="tablinks" onclick="openAuth(event, 'Signin')" id="defaultOpen">Sign-in</button>
+        <button class="tablinks" onclick="openAuth(event, 'Signup')">Sign-up</button>
+    </div>
+    <hr>
+    <div id="Signin" class="tabcontent">
+        <fieldset>
+            <legend>
+                <h3>Sign-in</h3>
 
-    <script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
-
-    <!-- END PRE-REQUISITES FOR GOOGLE SIGN IN -->
-</head>
-<body>
-<!-- GOOGLE PLUS SIGN IN BUTTON-->
-<div id="signinButton">
-      <span class="g-signin"
-            data-scope="openid email profile"
-            data-clientid="1042298890087-hli1d68pft6cdrup9ro377r41s2hqkq3.apps.googleusercontent.com"
-            data-redirecturi="postmessage"
-            data-accesstype="offline"
-            data-cookiepolicy="single_host_origin"
-            data-callback="signInCallback"
-            data-approvalprompt="force">
-      </span>
+            </legend>
+            <p>Enter following information.</p>
+            <form action="{{ url_for('login') }}" method="POST">
+                <small>Mobile Number:<span style="color: rgb(255, 0, 0);">*</span></small><br>
+                <span style="display: flex; padding: 0px; height:45px; width:60%; margin-left:8px;">
+                    <span style="width:140px !important;">
+                        {% include "countrycode.html" %}
+                    </span>
+                    <span style="margin: 0;">
+                        <input style="margin: 0;width: 100%;" type="text" placeholder="Enter your Mobile No." name="mob_no" required><br>
+                    </span>
+                </span>
+                <input type="submit" value="send-otp">
+            </form>
+        </fieldset>
+    </div>
+    <div id="Signup" class="tabcontent">
+        <fieldset>
+            <legend>
+                <h3>Sign-up</h3>
+            </legend>
+            <p>Enter following information.</p>
+            <form action="{{ url_for('register') }}" method="POST">
+                <small>Name:<span style="color: rgb(255, 0, 0);">*</span></small><br>
+                <input type="text" placeholder="Name" name="name"><br>
+                <small>Mobile Number:<span style="color: rgb(255, 0, 0);">*</span></small><br>
+                <span style="display: flex; padding: 0px; height:45px; width:60%; margin-left:8px;">
+                    <span style="width:140px !important;">
+                        {% include "countrycode.html" %}
+                    </span>
+                    <span style="margin: 0;">
+                        <input style="margin: 0;width: 100%;" type="text" placeholder="Enter your Mobile No." name="mob_no" required><br>
+                    </span>
+                </span>
+                <small>Email Id:<span style="color: rgb(255, 0, 0);">*</span></small><br>
+                <input type="text" placeholder="Enter your email Id." name="email" required><br>
+                <input type="submit" value="Register">
+            </form>
+        </fieldset>
+    </div>
 </div>
-<!--END GOOGLE PLUS SIGN IN BUTTON -->
-<div id="result">
-
-</div>
-<script type="text/javascript">
-    function signInCallback(authResult) {
-        if (authResult['code']) {
-            // hide the sign-in button how that the user is authorized,
-            $('#signinButton').attr('style', 'display: none');
-            // Send the one-time-use code to the Server, if the server responds, write a 'login Successful' message to the web page and then redirect back to the main restaurants page
-            $.ajax({
-                type: 'POST',
-                url: '/gconnect?state={{STATE}}',
-                processData: false,
-                contentType: 'application/octet-stream; charset=utf-8',
-                data: authResult['code'],
-                success: function (result) {
-                    if (result) {
-                        $('#result').html('Login Successful!</br>' + result + '</br>Redirecting...')
-                        setTimeout(function () {
-                            window.location.href = "/restaurants/";
-                        }, 2000);
-                    } else if (authResult['error']) {
-
-                        console.log('There was an error: ' + authResult['error']);
-                    } else {
-                        $('#result').html('Failed to make a server-side. Check your configuration and console.');
-                    }
-                }
-            })
-        }
-    }
+<script>
+    // Get the element with id="defaultOpen" and click on it
+    document.getElementById("defaultOpen").click();
 </script>
-</body>
-</html>
+
+{% endblock %}

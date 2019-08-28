@@ -13,17 +13,18 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
+    code = Column(String(10), nullable=False)
+    mob_no = Column(String(20), nullable=False)
     email = Column(String(250), nullable=False)
-    picture = Column(String(250))
-
     @property
     def serialize(self):
         """Return object data in easily serializeable format"""
         return {
             'name': self.name,
             'id': self.id,
+            'code': self.code,
+            'mob_no': self.mob_no,
             'email': self.email,
-            'picture': self.picture,
         }
 
 

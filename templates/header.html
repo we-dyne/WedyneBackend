@@ -10,7 +10,7 @@
                 <div class="navbar">
                     <!-- Dropdown button-->
                     <div class="dropdown">
-                        <button class="dropbtn" onclick="myFunction()">{{ session['username'] }}
+                        <button class="dropbtn" onclick="myFunction()">{{ session['name'] }}
                             <i>&#x25BD;</i>
                         </button>
                         <div class="dropdown-content" id="myDropdown">
@@ -21,10 +21,10 @@
                                         <img src="{{ session['picture'] }}" alt="image of {{ session['picture'] }}">
                                     </div>
                                 </li>
-                                <li>{{ session['username'] }}</li>
+                                <li>{{ session['name'] }}</li>
                                 <li>{{ session['email'] }}</li>
                                 <hr>
-                                <li><a href="{{ url_for('gdisconnect') }}">Logout</a></li>
+                                <li><a href="{{ url_for('logout') }}">Logout</a></li>
                             </ul>
                         </div>
                     </div>

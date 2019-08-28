@@ -1,28 +1,23 @@
 #!/usr/bin/env python3
 
 from flask import Flask, session, \
-    render_template, jsonify, request, redirect, url_for, flash
+    render_template, jsonify, request, redirect, url_for, flash, make_response
 from sqlalchemy import create_engine
 from functools import wraps
 from sqlalchemy.orm import sessionmaker
-import json
-import random
 from database_setup import Restaurant, Base, MenuItem, User
-import string
 from flask import session as login_session
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.client import FlowExchangeError
 import requests
-from flask import make_response
 import httplib2
+import random
+import re
+import string
+import json
+from sendOtp import sendotp
 
+otpauth = sendotp()
 app = Flask(__name__)
-
-CLIENT_ID = json.loads(
-    open('client_secrets.json',
-         'r').read())['web']['client_id']
-APPLICATION_NAME = "Restaurant Menu Application"
-
+senderId = "Wedyne"
 # Connect to Database and create database session
 engine = create_engine('sqlite:///restaurantmenuwithusers.db',
                        connect_args={'check_same_thread': False}, echo=True)
@@ -50,6 +45,13 @@ def check_user(f):
         else:
             return f(restaurant_id)
     return x
+
+
+def redirect_url(default='showCatalogs'):
+    return request.args.get('next') or \
+        request.referrer or \
+        url_for(default)
+
 
 # JSON APIs to view Restaurant Information
 @app.route('/restaurants/<int:restaurant_id>/menu/JSON')
@@ -178,7 +180,7 @@ def newMenuItem(restaurant_id):
                            user_id=login_session['user_id'])
         session.add(newItem)
         session.commit()
-        flash("New Item %s has been created" % request.form['name'])
+        flash(f"New Item {request.form['name']} has been created")
         return redirect(url_for('showCatalogs'))
     else:
         restaurants = session.query(Restaurant).all()
@@ -231,169 +233,122 @@ def deleteMenuItem(restaurant_id, menu_id):
         return render_template('deleteMenuItem.html', item=itemToDelete)
 
 
-# Create anti-forgery state token
-@app.route('/login')
-def login():
-    state = ''.join(random.choice(
-        string.ascii_uppercase + string.digits) for x in range(32))
-    login_session['state'] = state
-    # return "The current session state is %s" % login_session['state']
-    return render_template('login.html', STATE=state)
+# TODO Limit the number of false request (brute force prevention)
+@app.route("/verification", methods=['GET', 'POST'])
+def verification():
+    if 'mob_no' not in login_session:
+        flash('Invalid Url')
+        return redirect(redirect_url())
+    if request.method == 'POST':
+        cc = login_session.get('countrycode')
+        mob = login_session['mob_no']
+        phone = '+' + cc + mob
+        otp = request.form['otp']
+        status = otpauth.verify(contactNumber=phone, otp=otp)
+        j_status = json.loads(status)
+        if j_status["type"] == 'success':
+            if 'type' in login_session:
+                if login_session['type'] == 'A':
+                    user = session.query(User).filter_by(
+                        mob_no=login_session['mob_no']).first()
+                    # log user in
+                    login_session['name'] = user.name
+                    login_session['email'] = user.email
+                    flash('You are now logged in!')
+                    return redirect(url_for('showCatalogs'))
+                if login_session['type'] == 'B':
+                    # log user in
+                    create_user(login_session)
+                    login_session.clear()
+                    flash('You are successfully Registered!')
+                    # flash(ver['messages'])
+                    return redirect(url_for('login'))
+            flash("Invalid request.")
+            return redirect(url_for('login'))
+        flash(j_status['message'])
+        return redirect(url_for('verification'))
+    return render_template('verification.html')
 
 
-# google connect
-@app.route('/gconnect', methods=['POST'])
-def gconnect():
-    # Validate state token
-    if request.args.get('state') != login_session['state']:
-        response = make_response(json.dumps('Invalid state parameter.'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-    # Obtain authorization code, now compatible with Python3
-    request.get_data()
-    code = request.data.decode('utf-8')
-
-    try:
-        # Upgrade the authorization code into a credentials object
-        oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
-        oauth_flow.redirect_uri = 'postmessage'
-        credentials = oauth_flow.step2_exchange(code)
-    except FlowExchangeError:
-        response = make_response(
-            json.dumps('Failed to upgrade the authorization code.'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-
-    # Check that the access token is valid.
-    access_token = credentials.access_token
-    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
-           % access_token)
-    # Submit request, parse response - Python3 compatible
-    h = httplib2.Http()
-    response = h.request(url, 'GET')[1]
-    str_response = response.decode('utf-8')
-    result = json.loads(str_response)
-
-    # If there was an error in the access token info, abort.
-    if result.get('error') is not None:
-        response = make_response(json.dumps(result.get('error')), 500)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-
-    # Verify that the access token is used for the intended user.
-    gplus_id = credentials.id_token['sub']
-    if result['user_id'] != gplus_id:
-        response = make_response(
-            json.dumps("Token's user ID doesn't match given user ID."), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-
-    # Verify that the access token is valid for this app.
-    if result['issued_to'] != CLIENT_ID:
-        response = make_response(
-            json.dumps("Token's client ID does not match app's."), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-
-    stored_access_token = login_session.get('access_token')
-    stored_gplus_id = login_session.get('gplus_id')
-    if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps(
-            'Current user is already connected.'),
-            200)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-
-    # Store the access token in the session for later use.
-    login_session['access_token'] = access_token
-    login_session['gplus_id'] = gplus_id
-
-    # Get user info
-    userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
-    params = {'access_token': access_token, 'alt': 'json'}
-    answer = requests.get(userinfo_url, params=params)
-
-    data = answer.json()
-
-    login_session['username'] = data['name']
-    login_session['picture'] = data['picture']
-    login_session['email'] = data['email']
-
-    # see if user exists, if it doesn't make a new one
-    user_id = getUserID(login_session['email'])
-    if not user_id:
-        user_id = createUser(login_session)
-    login_session['user_id'] = user_id
-
-    output = ''
-    output += '<h1>Welcome, '
-    output += login_session['username']
-    output += '!</h1>'
-    output += '<img src="'
-    output += login_session['picture']
-    output += '" style = "width: 300px; height: 300px;' \
-              'border-radius: 150px;-webkit-border-radius: ' \
-              '150px;-moz-border-radius: 150px;"> '
-    flash("you are now logged in as %s" % login_session['username'])
-    return output
-
-
-# User Helper Functions
-
-
-def createUser(login_session):
-    newUser = User(name=login_session['username'], email=login_session[
-        'email'], picture=login_session['picture'])
+def create_user(login_session):
+    newUser = User(name=login_session['name'], code=login_session['countrycode'],
+                   mob_no=login_session['mob_no'], email=login_session['email'])
     session.add(newUser)
     session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
+    user = session.query(User).filter_by(mob_no=login_session['mob_no']).one()
     return user.id
 
 
-def getUserInfo(user_id):
-    user = session.query(User).filter_by(id=user_id).one()
-    return user
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if 'email' in login_session:
+        flash('you are already logged in')
+        return redirect(url_for('showCatalogs'))
+    if request.method == 'POST':
+        countrycode = request.form['countryCode']
+        mob_no = request.form['mob_no']
+        pattern = r"^[6789]{1}\d{9}$"
+        if not re.match(pattern, mob_no):
+            flash(f'Mobile Number {mob_no} not validate')
+            return redirect(url_for('login'))
+        phone = '+' + countrycode + mob_no
+        user = session.query(User).filter_by(mob_no=mob_no).first()
+        if user is None:
+            flash(f'Mobile Number {mob_no} is not registerd', 'error')
+            return redirect(url_for('register'))
+        otpauth.send(contactNumber=phone, senderId=senderId)
+        login_session['type'] = 'A'
+        login_session['countrycode'] = countrycode
+        login_session['mob_no'] = mob_no
+        flash(f'otp is sent to {mob_no}.')
+        return redirect(url_for('verification'))
+    return render_template('login.html')
 
-
-def getUserID(email):
-    try:
-        user = session.query(User).filter_by(email=email).one()
-        return user.id
-    except:
-        return None
-
-
-# DISCONNECT - Revoke a current user's token and reset their login_session
-@app.route('/gdisconnect')
-def gdisconnect():
-    # Only disconnect a connected user.
-    access_token = login_session.get('access_token')
-    if access_token is None:
-        response = make_response(
-            json.dumps('Current user not connected.'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[0]
-    if result['status'] == '200 OK':
-        # Reset the user's session.
-        del login_session['access_token']
-        del login_session['gplus_id']
-        del login_session['username']
-        del login_session['email']
-        del login_session['picture']
-
-        response = make_response(json.dumps('Successfully disconnected.'), 200)
-        response.headers['Content-Type'] = 'application/json'
-        flash(" You are Successfully disconnected.")
-        return redirect('/restaurants/')
+# Create anti-forgery state token
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    if 'email' in login_session:
+        flash('you are already logged in')
+        return redirect(url_for('showCatalogs'))
+    if request.method == 'POST':
+        name = request.form['name']
+        countrycode = request.form['countryCode']
+        mob_no = request.form['mob_no']
+        email = request.form['email']
+        m_pattern = r"^[6789]{1}\d{9}$"
+        e_pattern = r'^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+        if not re.match(m_pattern, mob_no):
+            flash(f'Mobile Number {mob_no} not validate')
+            return redirect(url_for('register'))
+        if not re.match(e_pattern, email):
+            flash(f'Mobile Number {email} not validate')
+            return redirect(url_for('register'))
+        phone = '+' + countrycode + mob_no
+        user = session.query(User).filter_by(mob_no=mob_no).first()
+        if user is not None:
+            flash(f'Mobile Number {mob_no} already registerd', 'error')
+            return redirect(url_for('login'))
+        otpauth.send(contactNumber=phone, senderId=senderId)
+        login_session['type'] = 'B'
+        login_session['mob_no'] = mob_no
+        login_session['name'] = name
+        login_session['countrycode'] = countrycode
+        login_session['email'] = email
+        flash(f'otp is sent to {mob_no}.')
+        return redirect(url_for('verification'))
     else:
-        # For whatever reason, the given token was invalid.
-        response = make_response(
-            json.dumps('Failed to revoke token for given user'))
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        return render_template('login.html')
+
+
+@login_required
+@app.route('/logout')
+def logout():
+    del login_session['name']
+    del login_session['mob_no']
+    del login_session['email']
+    del login_session['countrycode']
+    flash('successfully Logout')
+    return redirect(url_for('login'))
 
 
 # This only happens when project.py is called directly:

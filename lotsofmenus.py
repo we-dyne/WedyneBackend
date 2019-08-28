@@ -16,9 +16,25 @@ session = DBSession()
 
 # Create dummy user
 User1 = User(name="Amit Kumar",
-             email="ak125846@gmail.com",
-             picture='https://bit.ly/2NOadS1')
+             code="+91",
+             mob_no="9852972838",
+             email="ak125846@gmail.com")
 session.add(User1)
+session.commit()
+
+User2 = User(name="Abhinav",
+             code="+91",
+             mob_no="9905689883",
+             email="abhinavabhi@gmail.com")
+session.add(User2)
+session.commit()
+
+
+User3 = User(name="Amit Kumar",
+             code="+91",
+             mob_no="6287256462",
+             email="ak125846@gmail.com")
+session.add(User3)
 session.commit()
 
 # Menu for UrbanBurger

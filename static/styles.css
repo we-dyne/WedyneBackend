@@ -1,8 +1,10 @@
-*, html {
+*,
+html {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
+
 body {
     background-image: url('background.png');
     background-position: center;
@@ -103,10 +105,12 @@ a {
     text-shadow: none;
 
 }
-.item_card:hover{
+
+.item_card:hover {
     background-color: rgba(255, 255, 255, 1);
     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
 }
+
 .item_card .card_link {
     display: flex;
 }
@@ -143,7 +147,8 @@ a {
 }
 
 /* style price, item price */
-.item_card .price, .menu_price {
+.item_card .price,
+.menu_price {
     margin-left: auto;
     margin-top: 5px;
     margin-right: 10px;
@@ -153,8 +158,10 @@ a {
     padding: 25px 10px;
     border-radius: 50px;
 }
+
 /* style for price icon */
-.price, .menu_price{
+.price,
+.menu_price {
     color: white;
     font-weight: bold;
     text-align: center;
@@ -207,7 +214,8 @@ ul {
     border-radius: 10px;
 }
 
-.dropdown:hover .dropbtn, .dropbtn:focus {
+.dropdown:hover .dropbtn,
+.dropbtn:focus {
     background-color: grey;
     color: black;
 }
@@ -220,12 +228,13 @@ ul {
     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
     z-index: 1;
 }
+
 .dropdown-content a {
-	float: none;
-	color: black;
-	padding: 12px 16px;
-	text-decoration: none;
-	display: block;
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
 }
 
 .dropdown-content a:hover {
@@ -259,19 +268,21 @@ ul {
 /* style user page */
 .user_page {
     background-color: white;
-    margin: 20px auto;
-    width: 40vw;
+    margin: 10px auto;
+    width: 60vw;
     min-width: 350px;
-    text-align: center;
+    text-align: left;
     padding: 20px;
     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
 }
 
 /* style input text, url, select box */
-input[type='text'], input[type='url'], select {
-    width: 100%;
+input[type='text'],
+input[type='url'],
+select {
+    width: 60%;
     padding: 12px 20px;
-    margin: 8px 5px;
+    margin: 0px 0px 15px 8px;
 
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -284,7 +295,69 @@ input[type=radio] {
     margin: 8px 5px;
 }
 
+input[type=submit]{
+    margin: 10px auto;
+    text-align: center;
+    width: 80px;
+    height: 30px;
+}
 input[type=submit]:hover {
     background-color: #00004e;
     color: #ffffff;
+}
+
+.tab {
+    overflow: hidden;
+    margin: 20px 0;
+    text-align: center;
+}
+
+/* Style the buttons inside the tab */
+
+.tab button {
+    background-color: inherit;
+    border: 1px solid #dddddd;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+    border-radius: 5px;
+}
+
+/* Change background color of buttons on hover */
+
+/* Create an active/current tablink class */
+
+.tab button:hover,
+.tab button.active,
+aside ul li.active {
+    background-color: #00004e;
+    color: white;
+}
+
+/* Style the tab content */
+
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.tabcontent p {
+    margin-bottom: 10px;
+}
+
+form>small {
+    margin: 15px 0 0 8px;
+
+}
+
+fieldset{
+    padding: 12px;
+}
+
+legend{
+    margin: 0 auto;
 }
