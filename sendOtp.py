@@ -40,7 +40,7 @@ class sendotp:
         print(self.call('sendotp.php', values))
         return otp
 
-    def retry(self, contactNumber, retrytype='voice'):
+    def retry(self, contactNumber, retrytype='text'):
         values = {
             'authkey': self.authkey,
             'mobile': contactNumber,
@@ -48,7 +48,8 @@ class sendotp:
         }
         print(values)
         response = self.call('retryotp.php', values)
-        return
+
+        return response
 
     def verify(self, contactNumber, otp):
         values = {

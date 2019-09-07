@@ -1,14 +1,15 @@
 {% extends "main.html" %}
 {% block content %}
 <div class="user_page">
-    <div id="Signin">
+    <div id="Signup">
         <fieldset>
             <legend>
-                <h3>Sign-in</h3>
-
+                <h3>Sign-up</h3>
             </legend>
             <p>Enter following information.</p>
-            <form action="{{ url_for('login') }}" method="POST">
+            <form action="{{ url_for('register') }}" method="POST">
+                <small>Name:<span style="color: rgb(255, 0, 0);">*</span></small><br>
+                <input type="text" placeholder="Name" name="name"><br>
                 <small>Mobile Number:<span style="color: rgb(255, 0, 0);">*</span></small><br>
                 <span style="display: flex; padding: 0px; height:45px; width:60%; margin-left:8px;">
                     <span style="width:140px !important;">
@@ -18,11 +19,12 @@
                         <input style="margin: 0;width: 100%;" type="text" placeholder="Enter your Mobile No." name="mob_no" required><br>
                     </span>
                 </span>
-                <input type="submit" value="send-otp">
+                <small>Email Id:<span style="color: rgb(255, 0, 0);">*</span></small><br>
+                <input type="text" placeholder="Enter your email Id." name="email" required><br>
+                <input type="submit" value="Register">
             </form>
         </fieldset>
     </div>
-
 </div>
 
 {% endblock %}

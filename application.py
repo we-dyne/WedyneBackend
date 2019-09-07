@@ -33,6 +33,7 @@ def login_required(f):
         if 'email' not in login_session:
             return redirect('/login')
         return f(*args, **kwargs)
+
     return x
 
 
@@ -44,13 +45,14 @@ def check_user(f):
             return "permission denied"
         else:
             return f(restaurant_id)
+
     return x
 
 
 def redirect_url(default='showCatalogs'):
     return request.args.get('next') or \
-        request.referrer or \
-        url_for(default)
+           request.referrer or \
+           url_for(default)
 
 
 # JSON APIs to view Restaurant Information
@@ -247,35 +249,26 @@ def verification():
         status = otpauth.verify(contactNumber=phone, otp=otp)
         j_status = json.loads(status)
         if j_status["type"] == 'success':
-            if 'type' in login_session:
-                if login_session['type'] == 'A':
-                    user = session.query(User).filter_by(
-                        mob_no=login_session['mob_no']).first()
-                    # log user in
-                    login_session['name'] = user.name
-                    login_session['email'] = user.email
-                    flash('You are now logged in!')
-                    return redirect(url_for('showCatalogs'))
-                if login_session['type'] == 'B':
-                    # log user in
-                    create_user(login_session)
-                    login_session.clear()
-                    flash('You are successfully Registered!')
-                    # flash(ver['messages'])
-                    return redirect(url_for('login'))
-            flash("Invalid request.")
-            return redirect(url_for('login'))
+            user = session.query(User).filter_by(
+                mob_no=login_session['mob_no']).first()
+            if user is None:
+                return redirect(url_for('register'))
+            else:
+                login_session['name'] = user.name
+                login_session['email'] = user.email
+                flash('You are now logged in!')
+                return redirect(url_for('showCatalogs'))
         flash(j_status['message'])
         return redirect(url_for('verification'))
     return render_template('verification.html')
 
 
-def create_user(login_session):
-    newUser = User(name=login_session['name'], code=login_session['countrycode'],
-                   mob_no=login_session['mob_no'], email=login_session['email'])
+def create_user(name, countrycode, mob_no, email):
+    newUser = User(name=name, code=countrycode,
+                   mob_no=mob_no, email=email)
     session.add(newUser)
     session.commit()
-    user = session.query(User).filter_by(mob_no=login_session['mob_no']).one()
+    user = session.query(User).filter_by(mob_no=mob_no).one()
     return user.id
 
 
@@ -292,17 +285,13 @@ def login():
             flash(f'Mobile Number {mob_no} not validate')
             return redirect(url_for('login'))
         phone = '+' + countrycode + mob_no
-        user = session.query(User).filter_by(mob_no=mob_no).first()
-        if user is None:
-            flash(f'Mobile Number {mob_no} is not registerd', 'error')
-            return redirect(url_for('register'))
         otpauth.send(contactNumber=phone, senderId=senderId)
-        login_session['type'] = 'A'
         login_session['countrycode'] = countrycode
         login_session['mob_no'] = mob_no
         flash(f'otp is sent to {mob_no}.')
         return redirect(url_for('verification'))
     return render_template('login.html')
+
 
 # Create anti-forgery state token
 @app.route("/register", methods=['GET', 'POST'])
@@ -310,16 +299,14 @@ def register():
     if 'email' in login_session:
         flash('you are already logged in')
         return redirect(url_for('showCatalogs'))
+    if 'mob_no' not in login_session:
+        return redirect(url_for('login'))
     if request.method == 'POST':
         name = request.form['name']
-        countrycode = request.form['countryCode']
-        mob_no = request.form['mob_no']
+        countrycode = login_session['countrycode']
+        mob_no = login_session['mob_no']
         email = request.form['email']
-        m_pattern = r"^[6789]{1}\d{9}$"
         e_pattern = r'^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
-        if not re.match(m_pattern, mob_no):
-            flash(f'Mobile Number {mob_no} not validate')
-            return redirect(url_for('register'))
         if not re.match(e_pattern, email):
             flash(f'Mobile Number {email} not validate')
             return redirect(url_for('register'))
@@ -328,25 +315,29 @@ def register():
         if user is not None:
             flash(f'Mobile Number {mob_no} already registerd', 'error')
             return redirect(url_for('login'))
-        otpauth.send(contactNumber=phone, senderId=senderId)
-        login_session['type'] = 'B'
-        login_session['mob_no'] = mob_no
-        login_session['name'] = name
-        login_session['countrycode'] = countrycode
-        login_session['email'] = email
-        flash(f'otp is sent to {mob_no}.')
-        return redirect(url_for('verification'))
+        create_user(name=name, countrycode=countrycode, mob_no=mob_no, email=email)
+        login_session.clear()
+        flash(f'user {name} is successfully register.')
+        return redirect(url_for('login'))
     else:
-        return render_template('login.html')
+        return render_template('registration.html')
+
+
+@app.route("/retry", methods=['POST'])
+def retry():
+    countrycode = login_session['countrycode']
+    mob_no = login_session.get('mob_no')
+    mobile = countrycode + mob_no
+    status = otpauth.retry(contactNumber=mobile)
+    j_status = json.loads((status))
+    flash(f'{j_status["message"]}')
+    return redirect(url_for('verification'))
 
 
 @login_required
 @app.route('/logout')
 def logout():
-    del login_session['name']
-    del login_session['mob_no']
-    del login_session['email']
-    del login_session['countrycode']
+    login_session.clear()
     flash('successfully Logout')
     return redirect(url_for('login'))
 

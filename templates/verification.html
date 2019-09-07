@@ -1,19 +1,18 @@
 {% extends "main.html" %}
 {% block content %}
-<form action="{{ url_for('login') }}" method="POST">
+<div class="user_page">
+<form action="{{ url_for('retry') }}" method="POST">
         <span style="display: flex; padding: 0px; height:45px; width:60%; margin-left:8px;">
-                <span style="width:140px !important;">
-                    {% include "countrycode.html" %}
-                </span>
                 <span style="margin: 0;">
-                    <input style="margin: 0;width: 100%;" type="text" placeholder="Enter your Mobile No." name="mob_no" value="{{ session['mob_no'] }}" required><br>
+                    <input style="margin: 0;width: 100%;" type="text" placeholder="Enter your Mobile No." name="mob_no" value="+{{ session['countrycode'] }} {{ session['mob_no'] }}" required disabled="disabled"><br>
                 </span>
             </span>
     <input type="submit" value="Resend-Otp">
+<!--    <input type="submit" formaction="{{ url_for('login') }}" formmethod="get" value="change number">-->
 </form>
 <form action="{{ url_for('verification') }}" method="post">
-    <input type="text" name="otp">
+    <input type="text" name="otp" style="width: 160px;">
     <input type="submit" value="verify">
 </form>
-
+</div>
 {% endblock %}
