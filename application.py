@@ -272,8 +272,7 @@ def create_user(name, countrycode, mob_no, email):
     return user.id
 
 
-@app.route("/login", methods=['GET', 'POST'])
-def login():
+def otp_auth():
     if 'email' in login_session:
         flash('you are already logged in')
         return redirect(url_for('showCatalogs'))
@@ -292,6 +291,15 @@ def login():
         return redirect(url_for('verification'))
     return render_template('login.html')
 
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if 'mob_no' in login_session and 'email' not in login_session:
+        login_session.clear()
+    return otp_auth()
+
+@app.route("/change_number", methods=['GET', 'POST'])
+def change_number():
+    return otp_auth()
 
 # Create anti-forgery state token
 @app.route("/register", methods=['GET', 'POST'])

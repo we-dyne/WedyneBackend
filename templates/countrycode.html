@@ -1,6 +1,10 @@
 <!-- country codes (ISO 3166) and Dial codes. -->
 <select name="countryCode" id="" style="margin: 0; width:100%;">
+    {% if 'countrycode' in session %}
+    <option value="{{ session['countrycode'] }}">+{{ session['countrycode'] }}</option>
+    {% else %}
     <option value="91">India (+91)</option>
+    {% endif %}
     <optgroup label="Other countries">
         <option value="213">Algeria (+213)</option>
         <option value="376">Andorra (+376)</option>

@@ -7,9 +7,8 @@
     <list default="true" id="6c555c6b-4838-4419-96af-0411cc172642" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/application.py" beforeDir="false" afterPath="$PROJECT_DIR$/application.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/restaurantmenuwithusers.db" beforeDir="false" afterPath="$PROJECT_DIR$/restaurantmenuwithusers.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sendOtp.py" beforeDir="false" afterPath="$PROJECT_DIR$/sendOtp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/restaurantmenuwithusers.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/countrycode.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/countrycode.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/verification.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/verification.html" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -227,7 +226,9 @@
       <workItem from="1567853092854" duration="7403000" />
       <workItem from="1567872797795" duration="116000" />
       <workItem from="1567877455017" duration="4000" />
-      <workItem from="1567877516659" duration="3396000" />
+      <workItem from="1567877516659" duration="5203000" />
+      <workItem from="1567930870979" duration="2023000" />
+      <workItem from="1567948156188" duration="278000" />
     </task>
     <servers />
   </component>
