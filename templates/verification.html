@@ -6,7 +6,7 @@
                     <input style="margin: 0;width: 60%;" type="text" placeholder="Enter your Mobile No." name="mob_no" value="+{{ session['countrycode'] }} {{ session['mob_no'] }}" required disabled="disabled"><br>
                 </span>
     <input type="submit" value="Resend-Otp">
-<!--    <input type="submit" formaction="{{ url_for('login') }}" formmethod="get" value="change number">-->
+    <input type="submit" formaction="{{ url_for('change_number') }}" formmethod="get" value="change number">
 </form>
 <form action="{{ url_for('verification') }}" method="post">
     <input type="text" name="otp" style="width: 160px;">
