@@ -58,7 +58,6 @@ def redirect_url(default='showCatalogs'):
 # JSON APIs to view Restaurant Information
 @app.route('/restaurants/<int:restaurant_id>/menu/JSON')
 def restaurantMenuJSON(restaurant_id):
-    restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
     items = session.query(MenuItem).filter_by(
         restaurant_id=restaurant_id).all()
     return jsonify(MenuItems=[i.serialize for i in items])
@@ -154,8 +153,6 @@ def editCategory(restaurant_id):
 def deleteCategory(restaurant_id):
     deleteRestaurant = session.query(Restaurant) \
         .filter_by(id=restaurant_id).one_or_none()
-    itemToDelete = session.query(MenuItem) \
-        .filter_by(restaurant_id=restaurant_id).delete()
     if request.method == 'POST':
         session.delete(deleteRestaurant)
         session.commit()
@@ -252,6 +249,7 @@ def verification():
             user = session.query(User).filter_by(
                 mob_no=login_session['mob_no']).first()
             if user is None:
+                login_session['register'] = 'register'
                 return redirect(url_for('register'))
             else:
                 login_session['name'] = user.name
@@ -291,15 +289,20 @@ def otp_auth():
         return redirect(url_for('verification'))
     return render_template('login.html')
 
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if 'mob_no' in login_session and 'email' not in login_session:
         login_session.clear()
     return otp_auth()
 
+
 @app.route("/change_number", methods=['GET', 'POST'])
 def change_number():
+    if 'mob_no' not in login_session:
+        return redirect(url_for('login'))
     return otp_auth()
+
 
 # Create anti-forgery state token
 @app.route("/register", methods=['GET', 'POST'])
@@ -309,20 +312,22 @@ def register():
         return redirect(url_for('showCatalogs'))
     if 'mob_no' not in login_session:
         return redirect(url_for('login'))
+    if 'register' not in login_session:
+        flash('invalid url access')
+        return redirect(url_for('login'))
+    mob_no = login_session['mob_no']
+    user = session.query(User).filter_by(mob_no=mob_no).first()
+    if user is not None:
+        flash(f'Mobile Number {mob_no} already registerd', 'error')
+        return redirect(url_for('login'))
     if request.method == 'POST':
         name = request.form['name']
         countrycode = login_session['countrycode']
-        mob_no = login_session['mob_no']
         email = request.form['email']
         e_pattern = r'^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
         if not re.match(e_pattern, email):
             flash(f'Mobile Number {email} not validate')
             return redirect(url_for('register'))
-        phone = '+' + countrycode + mob_no
-        user = session.query(User).filter_by(mob_no=mob_no).first()
-        if user is not None:
-            flash(f'Mobile Number {mob_no} already registerd', 'error')
-            return redirect(url_for('login'))
         create_user(name=name, countrycode=countrycode, mob_no=mob_no, email=email)
         login_session.clear()
         flash(f'user {name} is successfully register.')

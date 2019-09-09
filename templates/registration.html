@@ -12,9 +12,12 @@
                 <input type="text" placeholder="Name" name="name"><br>
                 <small>Mobile Number:<span style="color: rgb(255, 0, 0);">*</span></small><br>
 
-                    <span style="width:60%; margin-left:8px;">
-                    <input style="margin: 0;width: 60%;" type="text" placeholder="Enter your Mobile No." name="mob_no" value="+{{ session['countrycode'] }} {{ session['mob_no'] }}" required disabled="disabled"><br>
-                        <input type="submit" formaction="{{ url_for('change_number') }}" formmethod="post" value="change number"><br>
+                <span style="width:60%; margin-left:8px;">
+                    <input style="margin: 0;width: 60%;" type="text" placeholder="Enter your Mobile No." name="mob_no"
+                           value="+{{ session['countrycode'] }} {{ session['mob_no'] }}" required
+                           disabled="disabled"><br>
+                        <input type="submit" formaction="{{ url_for('change_number') }}" formmethod="post"
+                               value="change number"><br>
                 </span>
 
                 <small>Email Id:<span style="color: rgb(255, 0, 0);">*</span></small><br>

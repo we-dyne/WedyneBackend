@@ -9,7 +9,7 @@
     <input type="submit" formaction="{{ url_for('change_number') }}" formmethod="get" value="change number">
 </form>
 <form action="{{ url_for('verification') }}" method="post">
-    <input type="text" name="otp" style="width: 160px;">
+    <input type="text" name="otp" style="width: 160px;" autocomplete="off">
     <input type="submit" value="verify">
 </form>
 </div>
